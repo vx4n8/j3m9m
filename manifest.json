@@ -1,0 +1,16 @@
+{
+  "name": "REKON Vault",
+  "short_name": "REKON Vault",
+  "description": "Your production address book — people, venues, suppliers",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fa",
+  "theme_color": "#0099FF",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230099FF'/><text x='96' y='136' text-anchor='middle' font-size='100' font-family='sans-serif' fill='white'>V</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

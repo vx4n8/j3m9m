@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REKON — Vault</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0099FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="REKON Vault">
+<style>
+:root{
+  --blue:#0099FF;--blue-light:#e0f2ff;--blue-mid:#b8ddf8;
+  --bg:#f5f7fa;--white:#ffffff;--text:#111111;
+  --muted:#666666;--hint:#888888;
+  --border:#e0e8f0;--field-bg:#f0f4f8;--field-border:#d0dae8;
+  --danger:#c0392b;--danger-bg:#fdf0f0;--danger-border:#f5c6c6;
+  --success:#1a8048;--success-bg:#e8f7ee;--success-border:#a8dbbe;
+  --warn:#854f0b;--warn-bg:#faeeda;--warn-border:#f5c67a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-weight:400;min-height:100vh;}
+
+header{background:var(--white);padding:24px 40px 0 52px;display:flex;flex-direction:column;}
+.header-top{display:flex;align-items:center;gap:0;padding-bottom:14px;}
+.logo-wrap{flex-shrink:0;}
+.logo-wrap svg{display:block;height:56px;width:auto;}
+.header-divider{width:1px;background:var(--border);height:44px;margin:0 20px;flex-shrink:0;}
+.header-tagline{display:flex;flex-direction:column;justify-content:center;}
+.header-tagline .tl-top{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-weight:400;line-height:1.4;}
+.header-tagline .tl-bot{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--blue);font-weight:700;line-height:1.4;}
+.header-blue-line{height:1.5px;background:var(--blue);margin:0 -52px 0 -52px;}
+
+main{max-width:860px;margin:0 auto;padding:20px 20px 100px;}
+.edition-label{font-size:11px;color:var(--blue);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;padding-left:2px;}
+
+/* TABS */
+.tabs-bar{display:flex;background:var(--white);border:1px solid var(--border);border-radius:10px 10px 0 0;overflow:hidden;margin-bottom:0;}
+.tab{flex:1;padding:14px 10px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all 0.15s;letter-spacing:0.04em;}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--blue-light);}
+.tab:hover:not(.active){background:var(--field-bg);color:var(--text);}
+.tab-count{font-size:11px;background:var(--field-bg);border-radius:20px;padding:1px 7px;margin-left:5px;color:var(--muted);}
+.tab.active .tab-count{background:var(--blue-mid);color:var(--blue);}
+
+/* PANEL */
+.panel{background:var(--white);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:0;}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.search-wrap{flex:1;min-width:180px;position:relative;}
+.search-wrap input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--field-border);border-radius:6px;background:var(--field-bg);font-size:13px;font-family:inherit;color:var(--text);}
+.search-wrap input:focus{outline:none;border-color:var(--blue);background:var(--white);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px;}
+.filter-pills{display:flex;gap:6px;flex-wrap:wrap;}
+.pill{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--white);color:var(--muted);cursor:pointer;transition:all 0.13s;font-family:inherit;}
+.pill.active{background:var(--blue-light);border-color:var(--blue-mid);color:var(--blue);}
+.add-btn{padding:8px 18px;background:var(--blue);color:var(--white);border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;}
+.add-btn:hover{background:#0088ee;}
+
+/* RECORD LIST */
+.record-list{display:flex;flex-direction:column;}
+.record-item{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
+.record-item:last-child{border-bottom:none;}
+.record-item:hover{background:var(--field-bg);}
+.record-item.selected{background:var(--blue-light);}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0;}
+.av-people{background:#e0f0ff;color:#1060a0;}
+.av-venue{background:#e4f5e8;color:#1a6b30;}
+.av-supplier{background:#fef3e2;color:#8a5200;}
+.rec-info{flex:1;min-width:0;}
+.rec-name{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rec-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.rec-badges{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+.badge{font-size:11px;padding:2px 9px;border-radius:20px;white-space:nowrap;}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.badge-ok{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);}
+.badge-blue{background:var(--blue-light);color:#185FA5;border:1px solid var(--blue-mid);}
+.badge-gray{background:var(--field-bg);color:var(--muted);border:1px solid var(--border);}
+.rec-rate{font-size:12px;color:var(--muted);text-align:right;flex-shrink:0;min-width:70px;}
+
+.empty-state{padding:60px 20px;text-align:center;color:var(--hint);}
+.empty-state .empty-icon{font-size:40px;margin-bottom:12px;}
+.empty-state p{font-size:14px;margin-bottom:16px;}
+.empty-state button{padding:9px 22px;background:var(--blue);color:var(--white);border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+
+/* DETAIL PANEL */
+.detail-wrap{border-top:1px solid var(--border);}
+.detail-inner{padding:20px;}
+.detail-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;}
+.detail-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;flex-shrink:0;}
+.detail-title{flex:1;}
+.detail-name{font-size:17px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.detail-role{font-size:13px;color:var(--muted);}
+.detail-actions-top{display:flex;gap:8px;flex-shrink:0;}
+.icon-btn{padding:7px 14px;border:1px solid var(--border);border-radius:6px;background:var(--white);font-size:12px;cursor:pointer;font-family:inherit;color:var(--text);}
+.icon-btn:hover{background:var(--field-bg);}
+.icon-btn.danger:hover{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger);}
+.icon-btn.primary{background:var(--blue);color:var(--white);border-color:var(--blue);}
+.icon-btn.primary:hover{background:#0088ee;}
+
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.detail-field{background:var(--field-bg);border-radius:7px;padding:10px 13px;}
+.df-label{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.df-value{font-size:13px;color:var(--text);}
+.df-value a{color:var(--blue);text-decoration:none;}
+
+.section-head{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;}
+
+.ticket-item{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--field-bg);border-radius:7px;margin-bottom:6px;}
+.ticket-item:last-child{margin-bottom:0;}
+.ticket-name{font-size:13px;color:var(--text);}
+.ticket-exp{font-size:11px;}
+
+.job-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.job-chip{font-size:12px;padding:3px 11px;background:var(--blue-light);border:1px solid var(--blue-mid);color:#185FA5;border-radius:20px;}
+
+.notes-box{background:var(--field-bg);border-radius:7px;padding:12px;font-size:13px;color:var(--text);line-height:1.6;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+.modal{background:var(--white);border-radius:12px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-size:15px;font-weight:700;}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:0 4px;line-height:1;}
+.modal-body{padding:20px 24px;}
+.modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+.form-group{margin-bottom:14px;}
+.form-label{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;}
+.form-input{width:100%;padding:9px 13px;border:1px solid var(--field-border);border-radius:6px;background:var(--field-bg);font-size:13px;font-family:inherit;color:var(--text);}
+.form-input:focus{outline:none;border-color:var(--blue);background:var(--white);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-section{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue);margin:18px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--blue-light);}
+
+.btn-cancel{padding:8px 20px;border:1px solid var(--border);border-radius:7px;background:var(--white);font-size:13px;cursor:pointer;font-family:inherit;}
+.btn-save{padding:8px 22px;background:var(--blue);color:var(--white);border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;}
+.btn-save:hover{background:#0088ee;}
+
+/* Tickets editor */
+.ticket-editor{display:flex;flex-direction:column;gap:8px;}
+.ticket-row-edit{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;}
+.ticket-row-edit input{padding:7px 10px;border:1px solid var(--field-border);border-radius:6px;background:var(--field-bg);font-size:12px;font-family:inherit;}
+.ticket-row-edit input:focus{outline:none;border-color:var(--blue);}
+.remove-ticket{background:none;border:none;color:var(--danger);font-size:16px;cursor:pointer;padding:0 4px;}
+.add-ticket-btn{align-self:flex-start;font-size:12px;padding:5px 12px;border:1px solid var(--blue-mid);border-radius:20px;background:var(--blue-light);color:var(--blue);cursor:pointer;font-family:inherit;margin-top:4px;}
+
+/* Supplier category pills */
+.cat-pills{display:flex;flex-wrap:wrap;gap:6px;}
+.cat-pill{font-size:12px;padding:5px 13px;border-radius:20px;border:1px solid var(--border);cursor:pointer;font-family:inherit;background:var(--white);color:var(--muted);transition:all 0.13s;}
+.cat-pill.active{background:var(--blue-light);border-color:var(--blue-mid);color:var(--blue);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo-wrap">
+      <svg viewBox="0 0 340 80" xmlns="http://www.w3.org/2000/svg">
+        <text x="8" y="66" style="font-size:72px;font-weight:300;fill:#111;font-family:sans-serif;">R</text>
+        <text x="58" y="66" style="font-size:72px;font-weight:300;fill:#111;font-family:sans-serif;">E</text>
+        <text x="148" y="66" text-anchor="middle" style="font-size:72px;font-weight:300;fill:#0099FF;font-family:sans-serif;">K</text>
+        <text x="192" y="66" style="font-size:72px;font-weight:300;fill:#111;font-family:sans-serif;">O</text>
+        <text x="252" y="66" style="font-size:72px;font-weight:300;fill:#111;font-family:sans-serif;">N</text>
+        <text x="316" y="72" style="font-size:18px;font-weight:300;fill:#111;font-family:sans-serif;">®</text>
+      </svg>
+    </div>
+    <div class="header-divider"></div>
+    <div class="header-tagline">
+      <span class="tl-top">Vault,</span>
+      <span class="tl-bot">Redesigned</span>
+    </div>
+  </div>
+  <div class="header-blue-line"></div>
+</header>
+
+<main>
+  <div class="edition-label">Vault — Your Production Address Book</div>
+
+  <div class="tabs-bar">
+    <div class="tab active" id="tab-people" onclick="switchTab('people')">People <span class="tab-count" id="count-people">0</span></div>
+    <div class="tab" id="tab-venues" onclick="switchTab('venues')">Venues <span class="tab-count" id="count-venues">0</span></div>
+    <div class="tab" id="tab-suppliers" onclick="switchTab('suppliers')">Suppliers <span class="tab-count" id="count-suppliers">0</span></div>
+  </div>
+
+  <div class="panel">
+    <!-- PEOPLE -->
+    <div id="panel-people">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Search people..." id="search-people" oninput="renderPeople()">
+        </div>
+        <div class="filter-pills" id="people-filters">
+          <button class="pill active" onclick="setPeopleFilter('All',this)">All</button>
+          <button class="pill" onclick="setPeopleFilter('Camera',this)">Camera</button>
+          <button class="pill" onclick="setPeopleFilter('Sound',this)">Sound</button>
+          <button class="pill" onclick="setPeopleFilter('Lighting',this)">Lighting</button>
+          <button class="pill" onclick="setPeopleFilter('Direction',this)">Direction</button>
+          <button class="pill" onclick="setPeopleFilter('TM',this)">TM / Logistics</button>
+          <button class="pill" onclick="setPeopleFilter('PA',this)">PA</button>
+          <button class="pill" onclick="setPeopleFilter('Other',this)">Other</button>
+        </div>
+        <button class="add-btn" onclick="openModal('person')">+ Add person</button>
+      </div>
+      <div class="record-list" id="people-list"></div>
+      <div id="people-detail" style="display:none;"></div>
+    </div>
+
+    <!-- VENUES -->
+    <div id="panel-venues" style="display:none;">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Search venues..." id="search-venues" oninput="renderVenues()">
+        </div>
+        <button class="add-btn" onclick="openModal('venue')">+ Add venue</button>
+      </div>
+      <div class="record-list" id="venues-list"></div>
+      <div id="venues-detail" style="display:none;"></div>
+    </div>
+
+    <!-- SUPPLIERS -->
+    <div id="panel-suppliers" style="display:none;">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" placeholder="Search suppliers..." id="search-suppliers" oninput="renderSuppliers()">
+        </div>
+        <div class="filter-pills" id="supplier-filters">
+          <button class="pill active" onclick="setSupplierFilter('All',this)">All</button>
+          <button class="pill" onclick="setSupplierFilter('Catering',this)">Catering</button>
+          <button class="pill" onclick="setSupplierFilter('Equipment Hire',this)">Equipment Hire</button>
+          <button class="pill" onclick="setSupplierFilter('Transport',this)">Transport</button>
+          <button class="pill" onclick="setSupplierFilter('Comms',this)">Comms</button>
+          <button class="pill" onclick="setSupplierFilter('Security',this)">Security</button>
+          <button class="pill" onclick="setSupplierFilter('Other',this)">Other</button>
+        </div>
+        <button class="add-btn" onclick="openModal('supplier')">+ Add supplier</button>
+      </div>
+      <div class="record-list" id="suppliers-list"></div>
+      <div id="suppliers-detail" style="display:none;"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none;" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add person</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveRecord()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js');}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+let data = {people:[], venues:[], suppliers:[]};
+let currentTab = 'people';
+let selectedId = {people:null, venues:null, suppliers:null};
+let peopleFilter = 'All';
+let supplierFilter = 'All';
+let modalType = null;
+let editingId = null;
+
+function load(){
+  const saved = localStorage.getItem('rekon-vault');
+  if(saved){
+    try{ data = JSON.parse(saved); }catch(e){}
+  } else {
+    // Seed data
+    data.people = [
+      {id:'p1',name:'Marcus Hyland',role:'Lighting Director',location:'Brisbane',phone:'0412 555 001',email:'marcus@example.com',rate:'1850',discipline:'Lighting',notes:'Reliable LD, great with tight rigs.',tickets:[{name:'White Card',expiry:'2025-06-30'},{name:'First Aid',expiry:'2027-03-15'},{name:'Working at Heights',expiry:'2026-11-01'}],jobs:['Fox Sports — Magic Millions 2024','Channel 7 — Ekka 2024','Network 10 — Our Town 2023']},
+      {id:'p2',name:'Sandra Reyes',role:'Sound Supervisor',location:'Sydney',phone:'0411 555 002',email:'sandra@example.com',rate:'2100',discipline:'Sound',notes:'Best live sound super in the business.',tickets:[{name:'First Aid',expiry:'2026-09-01'}],jobs:['Fox Sports — NRL Grand Final 2024','ABC — Anzac Day 2024']},
+      {id:'p3',name:'Dale Kowalski',role:'Camera Operator',location:'Melbourne',phone:'0413 555 003',email:'dale@example.com',rate:'1600',discipline:'Camera',notes:'Also CASA-licensed RPA operator.',tickets:[{name:'CASA RPA Licence',expiry:'2026-08-01'},{name:'First Aid',expiry:'2025-12-01'}],jobs:['Channel 9 — AFL 2024','Fox Sports — A-League 2023']},
+      {id:'p4',name:'Tina Nguyen',role:'Production Assistant',location:'Brisbane',phone:'0414 555 004',email:'tina@example.com',rate:'650',discipline:'PA',notes:'Fast, calm, great with logistics.',tickets:[],jobs:['Fox Sports — Magic Millions 2024','Channel 7 — Royal Queensland Show 2024']}
+    ];
+    data.venues = [
+      {id:'v1',name:'Suncorp Stadium',address:'40 Castlemaine St, Milton QLD 4064',contact:'John Smith',phone:'07 3331 5000',email:'events@suncorp.com.au',notes:'Loading dock B for OB vehicles. Muster point: Gate 3.',surveyRef:'',jobs:['Channel 7 — State of Origin 2024','Fox Sports — NRL 2024']},
+      {id:'v2',name:'Port Macquarie Racecourse',address:'Crescent Head Rd, Port Macquarie NSW 2444',contact:'Sarah Bellamy',phone:'02 6581 5555',email:'sarah@pmracing.com.au',notes:'Limited power — bring genny. Great access from north end.',surveyRef:'',jobs:['Sky Racing — Country Cup 2024']}
+    ];
+    data.suppliers = [
+      {id:'s1',name:'The Hornets',category:'Equipment Hire',location:'Brisbane',contact:'Wayne Horner',phone:'0400 555 010',email:'wayne@hornets.com.au',rate:'',services:'Sound equipment hire, location sound packages, RF systems.',notes:'Very competitive on rate. 48hr notice for full kit.',jobs:['Fox Sports — Magic Millions 2024','Channel 7 — Ekka 2024']},
+      {id:'s2',name:'Trackside Catering',category:'Catering',location:'Brisbane / Regional QLD',contact:'Mary-Lou Peters',phone:'0401 555 011',email:'marylou@trackside.com.au',rate:'',services:'On-site catering for production crews. Breakfast, lunch, afternoon tea. BYO coffee cart available.',notes:'Excellent value. Need 5 days notice for regional.',jobs:['Fox Sports — Magic Millions 2024']}
+    ];
+    save();
+  }
+}
+
+function save(){
+  localStorage.setItem('rekon-vault', JSON.stringify(data));
+  updateCounts();
+}
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+function switchTab(tab){
+  currentTab = tab;
+  ['people','venues','suppliers'].forEach(t=>{
+    document.getElementById('panel-'+t).style.display = t===tab?'block':'none';
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+  renderAll();
+}
+
+function updateCounts(){
+  document.getElementById('count-people').textContent = data.people.length;
+  document.getElementById('count-venues').textContent = data.venues.length;
+  document.getElementById('count-suppliers').textContent = data.suppliers.length;
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────────
+function setPeopleFilter(val, el){
+  peopleFilter = val;
+  document.querySelectorAll('#people-filters .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  selectedId.people = null;
+  renderPeople();
+}
+
+function setSupplierFilter(val, el){
+  supplierFilter = val;
+  document.querySelectorAll('#supplier-filters .pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  selectedId.suppliers = null;
+  renderSuppliers();
+}
+
+// ── INITIALS ──────────────────────────────────────────────────────────────────
+function initials(name){
+  return name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+}
+
+// ── EXPIRY ────────────────────────────────────────────────────────────────────
+function ticketStatus(tickets){
+  if(!tickets||tickets.length===0) return null;
+  const now = new Date();
+  const warn = new Date(); warn.setMonth(warn.getMonth()+3);
+  let hasWarn=false;
+  for(const t of tickets){
+    if(!t.expiry) continue;
+    const exp = new Date(t.expiry);
+    if(exp < now) return 'expired';
+    if(exp < warn) hasWarn=true;
+  }
+  return hasWarn?'warn':'ok';
+}
+
+function expiryLabel(expiry){
+  if(!expiry) return '';
+  const exp = new Date(expiry);
+  const now = new Date();
+  const warn = new Date(); warn.setMonth(warn.getMonth()+3);
+  const fmt = exp.toLocaleDateString('en-AU',{month:'short',year:'numeric'});
+  if(exp<now) return `<span class="ticket-exp badge-warn">Expired ${fmt}</span>`;
+  if(exp<warn) return `<span class="ticket-exp" style="color:var(--warn);">Expiring ${fmt} — renew</span>`;
+  return `<span class="ticket-exp" style="color:var(--success);">Valid to ${fmt}</span>`;
+}
+
+// ── RENDER PEOPLE ─────────────────────────────────────────────────────────────
+function renderPeople(){
+  const q = (document.getElementById('search-people').value||'').toLowerCase();
+  let list = data.people.filter(p=>{
+    const matchQ = !q || p.name.toLowerCase().includes(q) || (p.role||'').toLowerCase().includes(q) || (p.location||'').toLowerCase().includes(q);
+    const matchF = peopleFilter==='All' || p.discipline===peopleFilter;
+    return matchQ && matchF;
+  });
+
+  const el = document.getElementById('people-list');
+  if(list.length===0){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">👤</div><p>No people in your Vault yet.<br>Add your crew and contacts.</p><button onclick="openModal('person')">+ Add first person</button></div>`;
+  } else {
+    el.innerHTML = list.map(p=>{
+      const st = ticketStatus(p.tickets);
+      const badges = [];
+      if(st==='expired') badges.push(`<span class="badge badge-warn">Ticket expired</span>`);
+      else if(st==='warn') badges.push(`<span class="badge badge-warn">Ticket expiring</span>`);
+      else if(st==='ok') badges.push(`<span class="badge badge-ok">Certs current</span>`);
+      if(p.tickets&&p.tickets.some(t=>t.name&&t.name.toLowerCase().includes('rpa'))) badges.push(`<span class="badge badge-blue">RPA</span>`);
+      return `<div class="record-item${selectedId.people===p.id?' selected':''}" onclick="selectPerson('${p.id}')">
+        <div class="avatar av-people">${initials(p.name)}</div>
+        <div class="rec-info">
+          <div class="rec-name">${p.name}</div>
+          <div class="rec-sub">${p.role||''}${p.location?' · '+p.location:''}</div>
+        </div>
+        <div class="rec-badges">${badges.join('')}</div>
+        <div class="rec-rate">${p.rate?'$'+Number(p.rate).toLocaleString()+'/day':''}<br><span style="color:var(--hint);font-size:11px;">${p.jobs&&p.jobs.length?p.jobs.length+' job'+(p.jobs.length>1?'s':''):''}</span></div>
+      </div>`;
+    }).join('');
+  }
+
+  if(selectedId.people) renderPersonDetail(selectedId.people);
+  else document.getElementById('people-detail').style.display='none';
+}
+
+function selectPerson(id){
+  selectedId.people = selectedId.people===id ? null : id;
+  renderPeople();
+}
+
+function renderPersonDetail(id){
+  const p = data.people.find(x=>x.id===id);
+  if(!p){document.getElementById('people-detail').style.display='none';return;}
+  const det = document.getElementById('people-detail');
+  det.style.display='block';
+  det.innerHTML=`<div class="detail-wrap"><div class="detail-inner">
+    <div class="detail-top">
+      <div class="detail-avatar av-people">${initials(p.name)}</div>
+      <div class="detail-title">
+        <div class="detail-name">${p.name}</div>
+        <div class="detail-role">${p.role||''}${p.location?' · '+p.location:''}</div>
+      </div>
+      <div class="detail-actions-top">
+        <button class="icon-btn primary">Pull into job</button>
+        <button class="icon-btn" onclick="openModal('person','${p.id}')">Edit</button>
+        <button class="icon-btn danger" onclick="deleteRecord('people','${p.id}')">Delete</button>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-field"><div class="df-label">Phone</div><div class="df-value"><a href="tel:${p.phone||''}">${p.phone||'—'}</a></div></div>
+      <div class="detail-field"><div class="df-label">Email</div><div class="df-value"><a href="mailto:${p.email||''}">${p.email||'—'}</a></div></div>
+      <div class="detail-field"><div class="df-label">Day rate</div><div class="df-value">${p.rate?'$'+Number(p.rate).toLocaleString():'—'}</div></div>
+      <div class="detail-field"><div class="df-label">Discipline</div><div class="df-value">${p.discipline||'—'}</div></div>
+    </div>
+    ${p.tickets&&p.tickets.length?`
+    <div class="section-head">Tickets & accreditations</div>
+    ${p.tickets.map(t=>`<div class="ticket-item"><span class="ticket-name">${t.name}</span>${expiryLabel(t.expiry)}</div>`).join('')}
+    `:''}
+    ${p.jobs&&p.jobs.length?`
+    <div class="section-head">Jobs together</div>
+    <div class="job-chips">${p.jobs.map(j=>`<span class="job-chip">${j}</span>`).join('')}</div>
+    `:''}
+    ${p.notes?`<div class="section-head">Notes</div><div class="notes-box">${p.notes}</div>`:''}
+  </div></div>`;
+}
+
+// ── RENDER VENUES ─────────────────────────────────────────────────────────────
+function renderVenues(){
+  const q = (document.getElementById('search-venues').value||'').toLowerCase();
+  let list = data.venues.filter(v=>{
+    return !q || v.name.toLowerCase().includes(q) || (v.address||'').toLowerCase().includes(q);
+  });
+
+  const el = document.getElementById('venues-list');
+  if(list.length===0){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">📍</div><p>No venues in your Vault yet.<br>Add the venues you've worked.</p><button onclick="openModal('venue')">+ Add first venue</button></div>`;
+  } else {
+    el.innerHTML = list.map(v=>`<div class="record-item${selectedId.venues===v.id?' selected':''}" onclick="selectVenue('${v.id}')">
+      <div class="avatar av-venue">${initials(v.name)}</div>
+      <div class="rec-info">
+        <div class="rec-name">${v.name}</div>
+        <div class="rec-sub">${v.address||''}</div>
+      </div>
+      <div class="rec-badges">${v.jobs&&v.jobs.length?`<span class="badge badge-gray">${v.jobs.length} job${v.jobs.length>1?'s':''}</span>`:''}</div>
+    </div>`).join('');
+  }
+
+  if(selectedId.venues) renderVenueDetail(selectedId.venues);
+  else document.getElementById('venues-detail').style.display='none';
+}
+
+function selectVenue(id){
+  selectedId.venues = selectedId.venues===id ? null : id;
+  renderVenues();
+}
+
+function renderVenueDetail(id){
+  const v = data.venues.find(x=>x.id===id);
+  if(!v){document.getElementById('venues-detail').style.display='none';return;}
+  const det = document.getElementById('venues-detail');
+  det.style.display='block';
+  det.innerHTML=`<div class="detail-wrap"><div class="detail-inner">
+    <div class="detail-top">
+      <div class="detail-avatar av-venue">${initials(v.name)}</div>
+      <div class="detail-title">
+        <div class="detail-name">${v.name}</div>
+        <div class="detail-role">${v.address||''}</div>
+      </div>
+      <div class="detail-actions-top">
+        <button class="icon-btn primary">Pull into job</button>
+        <button class="icon-btn" onclick="openModal('venue','${v.id}')">Edit</button>
+        <button class="icon-btn danger" onclick="deleteRecord('venues','${v.id}')">Delete</button>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-field"><div class="df-label">Key contact</div><div class="df-value">${v.contact||'—'}</div></div>
+      <div class="detail-field"><div class="df-label">Phone</div><div class="df-value"><a href="tel:${v.phone||''}">${v.phone||'—'}</a></div></div>
+      <div class="detail-field"><div class="df-label">Email</div><div class="df-value"><a href="mailto:${v.email||''}">${v.email||'—'}</a></div></div>
+      <div class="detail-field"><div class="df-label">Survey report</div><div class="df-value">${v.surveyRef||'Not linked'}</div></div>
+    </div>
+    ${v.jobs&&v.jobs.length?`<div class="section-head">Jobs at this venue</div><div class="job-chips">${v.jobs.map(j=>`<span class="job-chip">${j}</span>`).join('')}</div>`:''}
+    ${v.notes?`<div class="section-head">Notes</div><div class="notes-box">${v.notes}</div>`:''}
+  </div></div>`;
+}
+
+// ── RENDER SUPPLIERS ──────────────────────────────────────────────────────────
+function renderSuppliers(){
+  const q = (document.getElementById('search-suppliers').value||'').toLowerCase();
+  let list = data.suppliers.filter(s=>{
+    const matchQ = !q || s.name.toLowerCase().includes(q) || (s.services||'').toLowerCase().includes(q) || (s.category||'').toLowerCase().includes(q);
+    const matchF = supplierFilter==='All' || s.category===supplierFilter;
+    return matchQ && matchF;
+  });
+
+  const el = document.getElementById('suppliers-list');
+  if(list.length===0){
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">🏢</div><p>No suppliers in your Vault yet.<br>Add your go-to suppliers.</p><button onclick="openModal('supplier')">+ Add first supplier</button></div>`;
+  } else {
+    el.innerHTML = list.map(s=>`<div class="record-item${selectedId.suppliers===s.id?' selected':''}" onclick="selectSupplier('${s.id}')">
+      <div class="avatar av-supplier">${initials(s.name)}</div>
+      <div class="rec-info">
+        <div class="rec-name">${s.name}</div>
+        <div class="rec-sub">${s.category||''}${s.location?' · '+s.location:''}</div>
+      </div>
+      <div class="rec-badges">${s.category?`<span class="badge badge-gray">${s.category}</span>`:''}</div>
+      <div class="rec-rate" style="font-size:12px;color:var(--muted);text-align:right;">${s.jobs&&s.jobs.length?s.jobs.length+' job'+(s.jobs.length>1?'s':''):''}</div>
+    </div>`).join('');
+  }
+
+  if(selectedId.suppliers) renderSupplierDetail(selectedId.suppliers);
+  else document.getElementById('suppliers-detail').style.display='none';
+}
+
+function selectSupplier(id){
+  selectedId.suppliers = selectedId.suppliers===id ? null : id;
+  renderSuppliers();
+}
+
+function renderSupplierDetail(id){
+  const s = data.suppliers.find(x=>x.id===id);
+  if(!s){document.getElementById('suppliers-detail').style.display='none';return;}
+  const det = document.getElementById('suppliers-detail');
+  det.style.display='block';
+  det.innerHTML=`<div class="detail-wrap"><div class="detail-inner">
+    <div class="detail-top">
+      <div class="detail-avatar av-supplier">${initials(s.name)}</div>
+      <div class="detail-title">
+        <div class="detail-name">${s.name}</div>
+        <div class="detail-role">${s.category||''}${s.location?' · '+s.location:''}</div>
+      </div>
+      <div class="detail-actions-top">
+        <button class="icon-btn primary">Pull into job</button>
+        <button class="icon-btn" onclick="openModal('supplier','${s.id}')">Edit</button>
+        <button class="icon-btn danger" onclick="deleteRecord('suppliers','${s.id}')">Delete</button>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-field"><div class="df-label">Contact</div><div class="df-value">${s.contact||'—'}</div></div>
+      <div class="detail-field"><div class="df-label">Phone</div><div class="df-value"><a href="tel:${s.phone||''}">${s.phone||'—'}</a></div></div>
+      <div class="detail-field"><div class="df-label">Email</div><div class="df-value"><a href="mailto:${s.email||''}">${s.email||'—'}</a></div></div>
+      <div class="detail-field"><div class="df-label">Category</div><div class="df-value">${s.category||'—'}</div></div>
+    </div>
+    ${s.services?`<div class="section-head">Services & equipment</div><div class="notes-box">${s.services}</div>`:''}
+    ${s.jobs&&s.jobs.length?`<div class="section-head">Jobs together</div><div class="job-chips">${s.jobs.map(j=>`<span class="job-chip">${j}</span>`).join('')}</div>`:''}
+    ${s.notes?`<div class="section-head">Notes</div><div class="notes-box">${s.notes}</div>`:''}
+  </div></div>`;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function openModal(type, id=null){
+  modalType=type; editingId=id;
+  const rec = id ? data[type==='person'?'people':type==='venue'?'venues':'suppliers'].find(x=>x.id===id) : null;
+  document.getElementById('modal-title').textContent = (id?'Edit ':'Add ') + type;
+  document.getElementById('modal-body').innerHTML = buildForm(type, rec);
+  document.getElementById('modal').style.display='flex';
+  if(type==='person') initTicketEditor(rec?rec.tickets:[]);
+}
+
+function buildForm(type, rec){
+  if(type==='person'){
+    const disciplines = ['Camera','Sound','Lighting','Direction','TM','PA','Other'];
+    return `
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Full name *</label><input class="form-input" id="f-name" value="${rec?rec.name:''}" placeholder="e.g. Marcus Hyland"></div>
+      <div class="form-group"><label class="form-label">Role / title</label><input class="form-input" id="f-role" value="${rec?rec.role||'':''}" placeholder="e.g. Lighting Director"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Discipline</label>
+      <select class="form-input" id="f-discipline">
+        ${disciplines.map(d=>`<option${rec&&rec.discipline===d?' selected':''}>${d}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="f-phone" value="${rec?rec.phone||'':''}" placeholder="04xx xxx xxx"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" value="${rec?rec.email||'':''}" placeholder="email@example.com"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="f-location" value="${rec?rec.location||'':''}" placeholder="City, State"></div>
+      <div class="form-group"><label class="form-label">Day rate ($)</label><input class="form-input" id="f-rate" type="number" value="${rec?rec.rate||'':''}" placeholder="0"></div>
+    </div>
+    <div class="form-section">Tickets & accreditations</div>
+    <div class="ticket-editor" id="ticket-editor"></div>
+    <button class="add-ticket-btn" onclick="addTicketRow()">+ Add ticket</button>
+    <div class="form-section">Notes</div>
+    <div class="form-group"><textarea class="form-input" id="f-notes" rows="3" placeholder="Notes about working with this person...">${rec?rec.notes||'':''}</textarea></div>`;
+  }
+  if(type==='venue'){
+    return `
+    <div class="form-group"><label class="form-label">Venue name *</label><input class="form-input" id="f-name" value="${rec?rec.name:''}" placeholder="e.g. Suncorp Stadium"></div>
+    <div class="form-group"><label class="form-label">Address</label><input class="form-input" id="f-address" value="${rec?rec.address||'':''}" placeholder="Street, Suburb, State, Postcode"></div>
+    <div class="form-section">Key contact</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Contact name</label><input class="form-input" id="f-contact" value="${rec?rec.contact||'':''}" placeholder="Name"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="f-phone" value="${rec?rec.phone||'':''}" placeholder="Phone"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" value="${rec?rec.email||'':''}" placeholder="email@venue.com"></div>
+    <div class="form-section">Notes</div>
+    <div class="form-group"><textarea class="form-input" id="f-notes" rows="3" placeholder="Loading access, power, muster point, parking...">${rec?rec.notes||'':''}</textarea></div>`;
+  }
+  if(type==='supplier'){
+    const cats = ['Catering','Equipment Hire','Transport','Comms','Security','Other'];
+    return `
+    <div class="form-group"><label class="form-label">Company name *</label><input class="form-input" id="f-name" value="${rec?rec.name:''}" placeholder="e.g. The Hornets"></div>
+    <div class="form-group"><label class="form-label">Category</label>
+      <div class="cat-pills">${cats.map(c=>`<button type="button" class="cat-pill${rec&&rec.category===c?' active':''}" onclick="setCat(this,'${c}')">${c}</button>`).join('')}</div>
+      <input type="hidden" id="f-category" value="${rec?rec.category||'Other':'Other'}">
+    </div>
+    <div class="form-group"><label class="form-label">Location / coverage area</label><input class="form-input" id="f-location" value="${rec?rec.location||'':''}" placeholder="e.g. Brisbane / Regional QLD"></div>
+    <div class="form-section">Contact</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Contact name</label><input class="form-input" id="f-contact" value="${rec?rec.contact||'':''}" placeholder="Name"></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="f-phone" value="${rec?rec.phone||'':''}" placeholder="Phone"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="f-email" type="email" value="${rec?rec.email||'':''}" placeholder="email@supplier.com"></div>
+    <div class="form-section">Services & equipment</div>
+    <div class="form-group"><textarea class="form-input" id="f-services" rows="2" placeholder="Brief description of what they supply...">${rec?rec.services||'':''}</textarea></div>
+    <div class="form-section">Notes</div>
+    <div class="form-group"><textarea class="form-input" id="f-notes" rows="2" placeholder="Lead times, pricing notes, anything worth remembering...">${rec?rec.notes||'':''}</textarea></div>`;
+  }
+}
+
+function setCat(el, val){
+  document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('f-category').value=val;
+}
+
+let ticketRows=[];
+function initTicketEditor(tickets){
+  ticketRows = tickets ? [...tickets.map(t=>({...t}))] : [];
+  renderTicketEditor();
+}
+function renderTicketEditor(){
+  const ed = document.getElementById('ticket-editor');
+  if(!ed) return;
+  ed.innerHTML = ticketRows.map((t,i)=>`
+    <div class="ticket-row-edit">
+      <input placeholder="Ticket name" value="${t.name||''}" oninput="ticketRows[${i}].name=this.value">
+      <input type="date" value="${t.expiry||''}" oninput="ticketRows[${i}].expiry=this.value">
+      <button class="remove-ticket" onclick="removeTicket(${i})">×</button>
+    </div>`).join('');
+}
+function addTicketRow(){ticketRows.push({name:'',expiry:''});renderTicketEditor();}
+function removeTicket(i){ticketRows.splice(i,1);renderTicketEditor();}
+
+function saveRecord(){
+  const name = (document.getElementById('f-name')||{}).value||'';
+  if(!name.trim()){alert('Please enter a name.');return;}
+
+  if(modalType==='person'){
+    const rec = {
+      id: editingId||uid(),
+      name: name.trim(),
+      role: document.getElementById('f-role').value,
+      discipline: document.getElementById('f-discipline').value,
+      phone: document.getElementById('f-phone').value,
+      email: document.getElementById('f-email').value,
+      location: document.getElementById('f-location').value,
+      rate: document.getElementById('f-rate').value,
+      tickets: ticketRows.filter(t=>t.name),
+      notes: document.getElementById('f-notes').value,
+      jobs: editingId ? (data.people.find(p=>p.id===editingId)||{}).jobs||[] : []
+    };
+    if(editingId){const i=data.people.findIndex(p=>p.id===editingId);data.people[i]=rec;}
+    else data.people.push(rec);
+  }
+
+  if(modalType==='venue'){
+    const rec = {
+      id: editingId||uid(),
+      name: name.trim(),
+      address: document.getElementById('f-address').value,
+      contact: document.getElementById('f-contact').value,
+      phone: document.getElementById('f-phone').value,
+      email: document.getElementById('f-email').value,
+      notes: document.getElementById('f-notes').value,
+      surveyRef: editingId ? (data.venues.find(v=>v.id===editingId)||{}).surveyRef||'' : '',
+      jobs: editingId ? (data.venues.find(v=>v.id===editingId)||{}).jobs||[] : []
+    };
+    if(editingId){const i=data.venues.findIndex(v=>v.id===editingId);data.venues[i]=rec;}
+    else data.venues.push(rec);
+  }
+
+  if(modalType==='supplier'){
+    const rec = {
+      id: editingId||uid(),
+      name: name.trim(),
+      category: document.getElementById('f-category').value,
+      location: document.getElementById('f-location').value,
+      contact: document.getElementById('f-contact').value,
+      phone: document.getElementById('f-phone').value,
+      email: document.getElementById('f-email').value,
+      services: document.getElementById('f-services').value,
+      notes: document.getElementById('f-notes').value,
+      jobs: editingId ? (data.suppliers.find(s=>s.id===editingId)||{}).jobs||[] : []
+    };
+    if(editingId){const i=data.suppliers.findIndex(s=>s.id===editingId);data.suppliers[i]=rec;}
+    else data.suppliers.push(rec);
+  }
+
+  save();
+  closeModal();
+  renderAll();
+}
+
+function deleteRecord(bucket, id){
+  if(!confirm('Delete this record? This cannot be undone.')) return;
+  data[bucket] = data[bucket].filter(x=>x.id!==id);
+  selectedId[bucket==='people'?'people':bucket==='venues'?'venues':'suppliers']=null;
+  save();
+  renderAll();
+}
+
+function closeModal(){document.getElementById('modal').style.display='none'; editingId=null; modalType=null;}
+function closeModalOutside(e){if(e.target===document.getElementById('modal')) closeModal();}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function renderAll(){
+  renderPeople();
+  renderVenues();
+  renderSuppliers();
+  updateCounts();
+}
+
+load();
+renderAll();
+</script>
+</body>
+</html>
